@@ -17,20 +17,19 @@ tick = fps 30
 -- keysDown
 -- Mouse.position
 
-data GameState = GS TankPos ReticulePos TurretPos
-
-gTankState = tankState tick keysDown
-gReticuleState = reticuleState Mouse.position
-gTurretState = turretState gTankState gReticuleState
+data GameState = GS TankPos ReticulePos --TurretPos
 
 -- gameState :: Signal GameState
-gameState = lift3 GS gTankState gReticuleState gTurretState
+gameState = let gTankState = tankState tick keysDown
+                gReticuleState = reticuleState Mouse.position
+--                gTurretState = turretState gTankState gReticuleState
+            in lift2 GS gTankState gReticuleState --gTurretState
 
 -- map :: (Int, Int) -> GameState -> Element
-display (w, h) (GS ta re tu) = 
+display (w, h) (GS ta re) = 
   collage w h [ drawTank ta
               , drawReticule re
-              , drawTurret ta tu
+--              , drawTurret ta tu
               ]
 
 -- main :: Signal Element
