@@ -49,8 +49,8 @@ sampledTankInput tick ks =
 data TankPos = T (Float, Float) Float
 defaultTank = T (200,200) 0
 
-turnRate = 0.005
-driveRate = 7
+turnRate = 0.003
+driveRate = 4
 
 -- stepTank :: SampledTankInput -> TankPos -> TankPos
 stepTank (STI delta (TI drive turn)) (T (x,y) theta) =
