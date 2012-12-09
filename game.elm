@@ -5,6 +5,7 @@ import JavaScript
 import Keyboard.Raw
 import Window
 
+{-
 desiredFPS = constant (castIntToJSNumber 30)
 foreign export jsevent "desiredFPS"
   desiredFPS :: Signal JSNumber
@@ -16,6 +17,9 @@ time = lift castJSNumberToFloat jsTime
 
 delta = lift snd $ foldp (\t1 (t0,d) -> (t1, t1-t0)) (0,0) time
 -- Modeling the controls of the tank chassis
+-}
+
+delta = fps 30
 
 data Drive = Forward | Reverse | Stop
 data Turn = Left | Right | Straight
@@ -28,8 +32,8 @@ updateTurn key turn =
   let leftKey = 65
       rightKey = 68
   in case turn of
-    Left     -> if key == leftKey  then Straight else Up
-    Right    -> if key == rightKey then Straight else Down
+    Left     -> if key == leftKey  then Straight else Left
+    Right    -> if key == rightKey then Straight else Right
     Straight -> if key == leftKey  then Left else
                 if key == rightKey then Right else Straight
 
@@ -52,42 +56,48 @@ keyInput = lift (foldl updateInput defaultKeyInput) keysDown
 
 data Input = I Float KeyInput
 
+-- input :: Signal Input
 input = sampleOn delta (lift2 I delta keyInput)
 
 data TankPos = T (Float, Float) Float
 
 data GameState = GS TankPos
-
-defaultGame = GS (T (200,200) 90)
+defaultGame = GS (T (200,200) 0)
 
 {- Section 2: Update -}
 
+turnRate = 0.005
+driveRate = 10
 
+-- stepTank :: Float -> KeyInput -> TankPos -> TankPos
+stepTank delta (KI drive turn) (T (x,y) theta) =
+  let newTheta = case turn of
+                   Straight -> theta
+                   Left -> theta + (turnRate * delta)
+                   Right -> theta - (turnRate * delta)
+      newX = case drive of
+               Stop -> x
+               Forward -> x + (driveRate * (cos newTheta))
+               Reverse -> x - (driveRate * (cos newTheta))
+      newY = case drive of
+               Stop -> y
+               Forward -> y - (driveRate * (sin newTheta))
+               Reverse -> y + (driveRate * (sin newTheta))
+  in T (newX, newY) newTheta
 
+-- stepGame :: Input -> GameState -> GameState
+stepGame (I delta ki) (GS tank) = GS $ stepTank delta ki tank
 
+-- gameState :: Signal GameState
+gameState = foldp stepGame defaultGame input
 
 -- drawTank :: TankPos -> Form
-drawTank (T (x,y) theta) = filled black (rect 20 30 (x,y))
+drawTank (T (x,y) theta) = 
+  let angle = 0 - (theta / (2 * pi)) in
+  rotate angle $ filled black (rect 30 20 (truncate x, truncate y))
 
-
-
--- move :: Turn -> Drive -> TankPos -> TankPos
-move turn drive (T (x,y) theta) = 
-  let newTheta = if turn == Straight
-                 then theta
-                 else if turn == Left
-                 then theta + 1
-                 else theta - 1
-  in T (x,y) newTheta
-
--- tankPos :: Signal ((Int, Int), Int)
-
-
--- map :: (Int, Int) -> Element
-map (w, h) = let t1 = drawTank $ T (300,300) 90
-                 t2 = drawTank $ T (200,200) 90
-             in collage w h [t1, t2]
-
+-- map :: (Int, Int) -> GameState -> Element
+map (w, h) (GS t) = collage w h [drawTank t]
 
 -- main :: Element or Signal Element
-main = lift map Window.dimensions
+main = lift2 map Window.dimensions gameState
