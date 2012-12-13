@@ -1,5 +1,5 @@
 
-module Reticule (ReticulePos, reticuleState, drawReticule) where
+module Reticule where
 
 data ReticulePos = RP (Int, Int)
 

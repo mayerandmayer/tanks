@@ -1,5 +1,5 @@
 
-module Tank (TankPos, tankState, drawTank) where
+module Tank where
 
 {- Section 1: Input -}
 
@@ -49,7 +49,7 @@ sampledTankInput tick ks =
 data TankPos = T (Float, Float) Float
 defaultTank = T (200,200) 0
 
-turnRate = 0.003
+turnRate = 0.002
 driveRate = 4
 
 -- stepTank :: SampledTankInput -> TankPos -> TankPos

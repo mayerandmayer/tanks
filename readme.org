@@ -16,3 +16,7 @@
     Direction theta
     Constantly updated
     Created each time you click mouse (destroyed out of screen)
+
+** ToDo
+*** Clear bullets when the leave map
+*** Replace crappy boxes with some sprites

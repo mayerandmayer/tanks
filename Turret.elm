@@ -1,5 +1,5 @@
 
-module Turret (TurretPos, turretState, drawTurret) where
+module Turret where
 
 --import Tank (TurretPos)
 --import Reticule (ReticulePos)

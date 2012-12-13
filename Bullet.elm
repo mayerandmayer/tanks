@@ -1,5 +1,5 @@
 
-module Bullet (BulletPos, bulletsState, drawBullet) where
+module Bullet where
 
 {- Section 1: Input -}
 
@@ -11,29 +11,29 @@ getFiring (T (x,y) a) (TrP theta) = BP (x,y) theta
 data BulletInput = Fire BulletPos
                  | Tick Float
 
--- fireInput :: Signal () -> Signal TankPos -> Signal TurretPos
---           -> Signal BulletInput
-fireInput click ta tu = sampleOn click (lift2 getFiring ta tu)
-
 -- bulletInput :: Signal () -> Signal TankPos -> Signal TurretPos
 --             -> Signal Float 
 --             -> Signal BulletInput
-bulletInput click tank turret tick = 
-  merge (fireInput click tank turret) 
-        (lift Tick tick)
+bulletInput click ta tu tick = 
+  let fireInput = sampleOn click (lift2 getFiring ta tu)
+  in merge (lift Fire fireInput) 
+           (lift Tick tick)
 
 {- Section 2: Model -}
 
 bulletSpeed = 10
 
+--moveBullet :: Float -> BulletPos -> BulletPos
+moveBullet delta (BP (x,y) theta) = 
+  let newX = x + (bulletSpeed * (cos theta))
+      newY = y + (bulletSpeed * (sin theta))
+  in BP (newX, newY) theta
+
 -- stepBullets :: BulletInput -> [BulletPos] -> [BulletPos]
-stepBullets (Fire bp)    bps      = bp : bps
-stepBullets (Tick delta) []       = []
-stepBullets (Tick delta) (bp:bps) = 
-  let (BP (x,y) theta) = bp
-      newX             = x + bulletSpeed * (cos theta)
-      newY             = y - bulletSpeed * (sin theta)
-  in (BP (newX, newY) theta) : stepBullets (Tick delta) bps
+stepBullets bi oldbps = 
+  case bi of
+    (Fire bp)    -> bp : oldbps
+    (Tick delta) -> map (moveBullet delta) oldbps
 
 -- defaultBullets :: [BulletPos]
 defaultBullets = []
