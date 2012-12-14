@@ -6,8 +6,10 @@ module Tank where
 data Drive = Forward | Reverse | Stop
 data Turn = Left | Right | Straight
 
-data TankInput = TI Drive Turn
-defaultTankInput = TI Stop Straight
+data TankInput = TaI Drive Turn
+
+-- defaultTankInput :: TankInput
+defaultTankInput = TaI Stop Straight
 
 -- updateTurn :: Int -> Turn -> Turn
 updateTurn key turn =
@@ -30,30 +32,30 @@ updateDrive key drive =
                if key == revKey then Reverse else Stop
 
 -- updateInput :: Int -> TankInput -> TankInput
-updateTankInput key (TI drive turn) = 
-  TI (updateDrive key drive) (updateTurn key turn)
+updateTankInput key (TaI drive turn) = 
+  TaI (updateDrive key drive) (updateTurn key turn)
 
 -- tankInput :: Signal [Int] -> Signal TankInput
 tankInput ks = lift (foldl updateTankInput defaultTankInput) ks
 
-data SampledTankInput = STI Float TankInput
+data SampledTankInput = STaI Float TankInput
 
 -- sampledTankInput :: Signal Time -> 
 --                     Signal [Int] ->
 --                     Signal SampledTankInput
 sampledTankInput tick ks = 
-  sampleOn tick (lift2 STI tick (tankInput ks))
+  sampleOn tick (lift2 STaI tick (tankInput ks))
 
 {- Section 2: Model -}
 
-data TankPos = T (Float, Float) Float
-defaultTank = T (200,200) 0
+data TankPos = TaP (Float, Float) Float
+defaultTank = TaP (200,200) 0
 
 turnRate = 0.002
 driveRate = 4
 
 -- stepTank :: SampledTankInput -> TankPos -> TankPos
-stepTank (STI delta (TI drive turn)) (T (x,y) theta) =
+stepTank (STaI delta (TaI drive turn)) (TaP (x,y) theta) =
   let newTheta = case turn of
                    Straight -> theta
                    Left -> theta + (turnRate * delta)
@@ -66,7 +68,7 @@ stepTank (STI delta (TI drive turn)) (T (x,y) theta) =
                Stop -> y
                Forward -> y - (driveRate * (sin newTheta))
                Reverse -> y + (driveRate * (sin newTheta))
-  in T (newX, newY) newTheta
+  in TaP (newX, newY) newTheta
 
 -- tankState :: Signal Time ->
 --              Signal [Int] ->
@@ -77,6 +79,6 @@ tankState tick ks =
 {- View -}
 
 -- drawTank :: TankPos -> Form
-drawTank (T (x,y) theta) = 
+drawTank (TaP (x,y) theta) = 
   let angle = 0 - (theta / (2 * pi)) in
   rotate angle $ filled black (rect 30 20 (truncate x, truncate y))

@@ -1,10 +1,10 @@
 
 module Reticule where
 
-data ReticulePos = RP (Int, Int)
+data ReticulePos = ReP (Int, Int)
 
 -- reticuleState :: Signal (Int,Int) -> Signal ReticulePos
-reticuleState mp = lift RP mp
+reticuleState mp = lift ReP mp
 
 -- reticule :: Element
 reticule =
@@ -17,4 +17,4 @@ reticule =
   in collage wh wh [hori, vert, circ]
 
 -- drawReticule :: ReticulePos -> Form
-drawReticule (RP coord) = toForm coord reticule
+drawReticule (ReP coord) = toForm coord reticule
