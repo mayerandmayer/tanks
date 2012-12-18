@@ -1,1 +1,1 @@
-/Users/jpmayer/workspace/Elm/elm/elm-runtime-jpm.js
+/home/mayerjoh/workspace/Elm/elm/elm-runtime.js
